@@ -7,41 +7,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: setup rust
         uses: dtolnay/rust-toolchain@stable
-
       - name: install pnpm
         run: npm install -g pnpm@10.26.2
-
       - name: install dependencies
         run: pnpm install
-
       - name: build pake cli
         run: pnpm run cli:build
-
       - name: setup android sdk
         uses: android-actions/setup-android@v3
-
       - name: install ndk
-        run: |
-          yes | sdkmanager --install "ndk;26.1.10909125"
-
+        run: yes | sdkmanager --install "ndk;26.1.10909125"
       - name: install android targets
         run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-
       - name: build odysseus apk
         run: |
-          pnpm tauri android init --force
+          rm -rf src-tauri/gen/android
+          pnpm tauri android init
           pnpm tauri android build --debug
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
-
       - name: upload apk
         uses: actions/upload-artifact@v4
         with:
