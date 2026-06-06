@@ -15,8 +15,6 @@ jobs:
 
       - name: setup rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android, armv7-linux-android, i686-linux-android, x86_64-linux-android
 
       - name: install pnpm
         run: npm install -g pnpm@10.26.2
@@ -31,7 +29,11 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: install ndk
-        run: $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "ndk;26.1.10909125"
+        run: |
+          yes | sdkmanager --install "ndk;26.1.10909125"
+
+      - name: install android targets
+        run: rustup target add aarch64-linux-android armv7-linux-android i686-linux-android x86_64-linux-android
 
       - name: build odysseus apk
         run: |
