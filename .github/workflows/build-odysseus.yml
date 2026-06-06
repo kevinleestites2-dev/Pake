@@ -7,14 +7,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: setup rust
         uses: dtolnay/rust-toolchain@stable
-      - name: install pake
-        run: npm install && npm run build
+        with:
+          targets: aarch64-linux-android, armv7-linux-android, i686-linux-android, x86_64-linux-android
+
+      - name: install pnpm
+        run: npm install -g pnpm@10.26.2
+
+      - name: install dependencies
+        run: pnpm install
+
+      - name: build pake cli
+        run: pnpm run cli:build
+
+      - name: setup android sdk
+        uses: android-actions/setup-android@v3
+
+      - name: install android targets
+        run: rustup target add aarch64-linux-android armv7-linux-android i686-linux-android x86_64-linux-android
+
       - name: build odysseus apk
         run: |
-          node dist/cli.js "https://nexus-relay-production.up.railway.app" --name "Odysseus" --icon src-tauri/icons/icon.png
+          pnpm tauri android init --force
+          pnpm tauri android build --debug
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      - name: upload apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: Odysseus-APK
+          path: src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
