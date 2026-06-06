@@ -25,13 +25,22 @@ jobs:
         run: yes | sdkmanager --install "ndk;26.1.10909125"
       - name: install android targets
         run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-      - name: build odysseus apk
+      
+      - name: Patch for Android
         run: |
+          echo '#[cfg_attr(mobile, tauri::mobile_entry_point)]' > src-tauri/src/lib.rs
+          echo 'pub fn run() {' >> src-tauri/src/lib.rs
+          echo '  tauri::Builder::default()' >> src-tauri/src/lib.rs
+          echo '    .run(tauri::generate_context!())' >> src-tauri/src/lib.rs
+          echo '    .expect("error while running tauri application");' >> src-tauri/src/lib.rs
+          echo '}' >> src-tauri/src/lib.rs
+          
           rm -rf src-tauri/gen/android
           pnpm tauri android init
           pnpm tauri android build --debug
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+
       - name: upload apk
         uses: actions/upload-artifact@v4
         with:
