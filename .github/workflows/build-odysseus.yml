@@ -15,8 +15,6 @@ jobs:
 
       - name: setup rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android, armv7-linux-android, i686-linux-android, x86_64-linux-android
 
       - name: install pnpm
         run: npm install -g pnpm@10.26.2
@@ -35,6 +33,8 @@ jobs:
 
       - name: build odysseus apk
         run: |
+          # Create a dummy config if tauri.conf.json is too desktop-specific
+          # But let's try the init first.
           pnpm tauri android init --force
           pnpm tauri android build --debug
         env:
